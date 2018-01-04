@@ -11,7 +11,7 @@ $.ajax({
 })
 
 chrome.storage.sync.get(info => {
-    if (info.hasOwnProperty('count'))
+    if (!info.hasOwnProperty('count'))
         chrome.storage.sync.set({
             'count': 0
         })
