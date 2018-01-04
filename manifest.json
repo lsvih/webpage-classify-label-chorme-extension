@@ -1,0 +1,37 @@
+{
+    "manifest_version": 2,
+    "name": "网页分类标注工具",
+    "description": "用于网页分类数据标注采集，仅用于实验室内网，感谢标注。",
+    "version": "1.0",
+    "icons": {
+        "128": "resource/logo.png"
+    },
+    "background": {
+        "scripts": [
+            "js/jquery.js",
+            "js/background.js"
+        ]
+    },
+    "content_scripts": [{
+        "run_at": "document_end",
+        "matches": [
+            "http://*/*",
+            "https://*/*"
+        ],
+        "js": [
+            "js/jquery.js",
+            "js/content_script.js"
+        ]
+    }],
+    "browser_action": {
+        "default_icon": "resource/logo.png",
+        "default_popup": "html/popup.html"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "storage",
+        "http://*/*",
+        "https://*/*"
+    ]
+}
