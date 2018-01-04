@@ -1,4 +1,4 @@
-const server = 'http://192.168.120.215:8083/'
+const server = 'http://192.168.120.215:9999/'
 let state = false
 
 $(document).ready(() => {

@@ -103,8 +103,8 @@ function initLabelTool() {
     function submit(index, url) {
         chrome.extension.sendMessage({
             type: 'submit',
-            index,
-            url
+            index: index,
+            url: url
         })
         closeLabelTool()
     }

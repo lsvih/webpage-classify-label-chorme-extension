@@ -1,5 +1,5 @@
 // First launch
-const server = 'http://192.168.120.215:8083/'
+const server = 'http://192.168.120.215:9999/'
 toggle(false)
 
 $.ajax({
@@ -21,26 +21,26 @@ chrome.storage.sync.get(info => {
 chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
     switch (objRequest.type) {
         case "submit":
-            let index = objRequest.index
+            let clazz = objRequest.index
             let url = objRequest.url
             $.ajax({
-                url: 'http://192.168.120.215:8083/submit',
+                url: `${server}labels`,
                 type: 'POST',
-                data: {
-                    index,
-                    url
-                },
-                dataType: 'json',
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    "clazz": clazz,
+                    "url": url
+                }),
             }).then(res => {
-                    sendResponse({
-                        'status': 200
-                    });
-                    updateCount()
-                }, err =>
+                sendResponse({
+                    'status': 200
+                });
+                updateCount()
+            }, err => {
                 sendResponse({
                     'status': 500
                 })
-            )
+            })
             break
         case "alert":
             alert(objRequest.msg)
