@@ -23,13 +23,15 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
         case "submit":
             let clazz = objRequest.index
             let url = objRequest.url
+            let html = objRequest.html
             $.ajax({
                 url: `${server}labels`,
                 type: 'POST',
                 contentType: "application/json;charset=UTF-8",
                 data: JSON.stringify({
                     "clazz": clazz,
-                    "url": url
+                    "url": url,
+                    "html": html
                 }),
             }).then(res => {
                 sendResponse({

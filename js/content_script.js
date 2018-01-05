@@ -5,7 +5,7 @@ const template = `
     <div class="label-tool-message-panel"></div>
 </div>
 <div id="label-tool-mask"></div>
-<style>
+<style id="label-tool-style">
     #label-tool-mask{
         background-color: rgba(0,0,0,.3);
         position: fixed;
@@ -101,10 +101,14 @@ function initLabelTool() {
      * @param {string} url 
      */
     function submit(index, url) {
+        let page = $('html').clone(true)
+        page.find("#label-tool-message,#label-tool-mask,#label-tool-style").remove()
+        const html = page.html()
         chrome.extension.sendMessage({
             type: 'submit',
             index: index,
-            url: url
+            url: url,
+            html: html
         })
         closeLabelTool()
     }
