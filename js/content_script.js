@@ -48,7 +48,7 @@ const template = `
     .label-tool-message-panel{
         padding: 20px 30px 0;
     }
-    .section{
+    .label-tool-message-panel .section{
         background-color: #eee;
         display: inline-block;
         width: 80px;
@@ -57,7 +57,7 @@ const template = `
         border-radius: 5px;
         margin: 0 2px;
     }
-    .section:hover,.label-tool-message-close:hover{
+    .label-tool-message-panel .section:hover,.label-tool-message-close:hover{
         background-color: #ddd;
     }
 </style>
