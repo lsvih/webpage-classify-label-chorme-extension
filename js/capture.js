@@ -217,15 +217,11 @@ window.CaptureAPI = (function () {
 
         // TODO will this stack up if run multiple times? (I think it will get cleared?)
         chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-            progress(request.complete);
-            capture(request, screenshots, sendResponse, splitnotifier);
-
-            // https://developer.chrome.com/extensions/messaging#simple
-            //
-            // If you want to asynchronously use sendResponse, add return true;
-            // to the onMessage event handler.
-            //
-            return true;
+            if (request.msg === 'capture') {
+                progress(request.complete);
+                capture(request, screenshots, sendResponse, splitnotifier);
+                return true;
+            }
         });
 
         chrome.tabs.executeScript(tab.id, {
