@@ -18,6 +18,9 @@ chrome.storage.sync.get(info => {
         })
 })
 
+let imageQuality = 1.0 // 图像质量
+let imageWidth = 500 // 图片宽度
+
 chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
     switch (objRequest.type) {
         case "submit":
@@ -25,8 +28,35 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
             let url = objRequest.url
             let html = objRequest.html
             getCapture((data) => {
-                var a = new FileReader();
-                a.onload = e => {
+                // 对截图进行缩放
+                function dataURLToCanvas(dataurl, cb) {
+                    var canvas = document.createElement('canvas')
+                    var ctx = canvas.getContext('2d')
+                    var img = new Image()
+                    img.onload = function () {
+                        canvas.width = imageWidth
+                        let scale = canvas.width / img.width
+                        canvas.height = img.height * scale
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                        cb(canvas)
+                    };
+                    img.src = dataurl
+                }
+
+                function fileOrBlobToDataURL(obj, cb) {
+                    var a = new FileReader()
+                    a.readAsDataURL(obj)
+                    a.onload = function (e) {
+                        cb(e.target.result)
+                    }
+                }
+
+                function BlobToCanvas(blob, cb) {
+                    fileOrBlobToDataURL(blob, function (dataurl) {
+                        dataURLToCanvas(dataurl, cb)
+                    })
+                }
+                BlobToCanvas(data[0], canvas => {
                     $.ajax({
                         url: `${server}labels`,
                         type: 'POST',
@@ -35,11 +65,11 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
                             "clazz": clazz,
                             "url": url,
                             "html": html,
-                            "image": e.target.result
+                            "image": canvas.toDataURL("image/png", imageQuality)
                         }),
                     })
-                }
-                a.readAsDataURL(data[0])
+                })
+
             })
             break
         case "alert":
