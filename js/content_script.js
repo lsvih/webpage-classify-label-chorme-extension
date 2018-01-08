@@ -104,12 +104,12 @@ function initLabelTool() {
         let page = $('html').clone(true)
         page.find("#label-tool-message,#label-tool-mask,#label-tool-style").remove()
         const html = page.html()
+        closeLabelTool()
         chrome.extension.sendMessage({
             type: 'submit',
             index: index,
             url: url,
             html: html
         })
-        closeLabelTool()
     }
 }

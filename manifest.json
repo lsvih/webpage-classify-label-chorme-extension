@@ -9,6 +9,7 @@
     "background": {
         "scripts": [
             "js/jquery.js",
+            "js/capture.js",
             "js/background.js"
         ]
     },
@@ -32,6 +33,7 @@
         "activeTab",
         "storage",
         "http://*/*",
-        "https://*/*"
+        "https://*/*",
+        "<all_urls>"
     ]
 }

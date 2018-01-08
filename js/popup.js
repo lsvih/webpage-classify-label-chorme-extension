@@ -1,4 +1,4 @@
-const server = 'http://192.168.120.215:9999/'
+const server = 'http://127.0.0.1:9999/'
 let state = false
 
 $(document).ready(() => {
@@ -12,6 +12,7 @@ $(document).ready(() => {
             $.ajax({
                 url: `${server}ping`,
                 type: 'GET',
+                timeout: 1000
             }).then(res => {
                 toggle(true)
                 $(".rb-switcher-label").text("on").removeClass("disable")
