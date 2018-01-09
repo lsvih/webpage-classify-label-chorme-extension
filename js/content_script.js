@@ -5,7 +5,21 @@ const template = `
     <div class="label-tool-message-panel"></div>
 </div>
 <div id="label-tool-mask"></div>
+<div id="label-tool-capture">标注完毕</div>
 <style id="label-tool-style">
+    #label-tool-capture{
+        display: none;
+        position: fixed;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        width: 100px;
+        font-size: 14px;
+        top: calc(50% - 15px);
+        left: calc(50% - 50px);
+        z-index: 1000001;
+        background-color: #fff;
+    }
     #label-tool-mask{
         background-color: rgba(0,0,0,.3);
         position: fixed;
@@ -22,10 +36,8 @@ const template = `
         position: fixed;
         height: 150px;
         width: 400px;
-        top: 50%;
-        left: 50%;
-        margin-top: -150px;
-        margin-left: -200px;
+        top: calc(50% - 75px);
+        left: calc(50% - 200px);
     }
     .label-tool-message-close{
         position: absolute;
@@ -64,12 +76,32 @@ const template = `
 `
 
 const label = ['1.频道页', '2.列表页', '3.内容页', '4.错误页']
+let fixedDOM = []
 
 chrome.storage.sync.get(info => {
     console.log(`标注工具开关状态：${info.switch}`)
     if (info.switch)
+        // 先检查 url 是否存在
+        chrome.extension.sendMessage({
+            type: 'checkUrl',
+            url: location.href
+        })
+})
+
+// 若数据库中不存在此网页，则弹出录入框
+chrome.runtime.onMessage.addListener(data => {
+    if (data.type == "notExist")
         initLabelTool()
-});
+})
+
+// 收到截图完毕的消息，弹出提示
+chrome.runtime.onMessage.addListener(data => {
+    if (data.type == "finishedCapture") {
+        $("#label-tool-capture,#label-tool-mask").show()
+        setTimeout(() => $("#label-tool-capture,#label-tool-mask").hide(), 800)
+        showAllFixedDOM()
+    }
+})
 
 function initLabelTool() {
     document.body.innerHTML += template;
@@ -105,11 +137,27 @@ function initLabelTool() {
         page.find("#label-tool-message,#label-tool-mask,#label-tool-style").remove()
         const html = page.html()
         closeLabelTool()
+        hideAllFixedDOM()
         chrome.extension.sendMessage({
             type: 'submit',
             index: index,
             url: url,
             html: html
         })
+    }
+}
+
+function hideAllFixedDOM() {
+    $('*').filter((i, e) => $(e).css('position') == 'fixed')
+        .filter((i, e) => $(e).is(':visible'))
+        .each((i, e) => {
+            fixedDOM.push(e)
+            $(e).hide()
+        })
+}
+
+function showAllFixedDOM() {
+    while (fixedDOM.length) {
+        $(fixedDOM.pop()).show()
     }
 }

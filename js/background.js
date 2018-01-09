@@ -26,7 +26,8 @@ chrome.storage.sync.get(info => {
 })
 
 let imageQuality = 1.0 // 图像质量
-let imageWidth = 500 // 图片宽度
+let isCompress = true // 是否开启压缩
+let imageWidth = 1280 // 图片宽度
 
 chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
     switch (objRequest.type) {
@@ -34,49 +35,53 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
             let clazz = objRequest.index
             let url = objRequest.url
             let html = objRequest.html
-            getCapture((data) => {
-                // 对截图进行缩放
-                function dataURLToCanvas(dataurl, cb) {
-                    var canvas = document.createElement('canvas')
-                    var ctx = canvas.getContext('2d')
-                    var img = new Image()
-                    img.onload = function () {
-                        canvas.width = imageWidth
-                        let scale = canvas.width / img.width
-                        canvas.height = img.height * scale
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-                        cb(canvas)
-                    };
-                    img.src = dataurl
-                }
-
-                function fileOrBlobToDataURL(obj, cb) {
-                    var a = new FileReader()
-                    a.readAsDataURL(obj)
-                    a.onload = function (e) {
-                        cb(e.target.result)
+            getCapture(data => {
+                // 通知页面已截图完毕
+                chrome.tabs.sendMessage(_.tab.id, {
+                    type: "finishedCapture"
+                }, () => {
+                    // 对截图进行缩放
+                    function dataURLToCanvas(dataurl, cb) {
+                        var canvas = document.createElement('canvas')
+                        var ctx = canvas.getContext('2d')
+                        var img = new Image()
+                        img.onload = function () {
+                            canvas.width = isCompress ? imageWidth : img.width
+                            let scale = canvas.width / img.width
+                            canvas.height = img.height * scale
+                            ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height)
+                            cb(canvas)
+                        };
+                        img.src = dataurl
                     }
-                }
 
-                function BlobToCanvas(blob, cb) {
-                    fileOrBlobToDataURL(blob, function (dataurl) {
-                        dataURLToCanvas(dataurl, cb)
-                    })
-                }
-                BlobToCanvas(data[0], canvas => {
-                    $.ajax({
-                        url: `${server}labels`,
-                        type: 'POST',
-                        contentType: "application/json;charset=UTF-8",
-                        data: JSON.stringify({
-                            "clazz": clazz,
-                            "url": url,
-                            "html": html,
-                            "image": canvas.toDataURL("image/png", imageQuality)
-                        }),
+                    function fileOrBlobToDataURL(obj, cb) {
+                        var a = new FileReader()
+                        a.readAsDataURL(obj)
+                        a.onload = function (e) {
+                            cb(e.target.result)
+                        }
+                    }
+
+                    function BlobToCanvas(blob, cb) {
+                        fileOrBlobToDataURL(blob, function (dataurl) {
+                            dataURLToCanvas(dataurl, cb)
+                        })
+                    }
+                    BlobToCanvas(data[0], canvas => {
+                        $.ajax({
+                            url: `${server}labels`,
+                            type: 'POST',
+                            contentType: "application/json;charset=UTF-8",
+                            data: JSON.stringify({
+                                "clazz": clazz,
+                                "url": url,
+                                "html": html,
+                                "image": canvas.toDataURL("image/png", imageQuality)
+                            }),
+                        })
                     })
                 })
-
             })
             break
         case "alert":
@@ -87,6 +92,19 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
             break
         case "getCapture":
             getCapture()
+            break
+        case "checkUrl":
+            $.ajax({
+                url: `${server}findLabelByUrl?url=${encodeURIComponent(objRequest.url)}`,
+                type: 'GET',
+                contentType: "application/json;charset=UTF-8",
+                timeout: 2000,
+            }).then(res => {
+                if (typeof res != "object")
+                    chrome.tabs.sendMessage(_.tab.id, {
+                        type: "notExist"
+                    })
+            }, err => console.log(err))
             break
         default:
             break
@@ -136,7 +154,6 @@ function getCapture(callback) {
         currentWindow: true
     }, tabs => {
         var tab = tabs[0]
-        currentTab = tab // used in later calls to get tab info
         CaptureAPI.captureToBlobs(tab, callback, err => alert(err))
     });
 }
