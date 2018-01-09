@@ -1,13 +1,16 @@
-const server = 'http://127.0.0.1:9999/'
 let state = false
-
+let server
 $(document).ready(() => {
+    chrome.storage.sync.get(info => {
+        server = info["server"]
+    })
     getCount()
     getState()
     $('.rb-switcher i').click(() => {
         if (state) {
             toggle(false)
             $(".rb-switcher-label").text("off").addClass("disable")
+            alert("插件已关闭")
         } else {
             $.ajax({
                 url: `${server}ping`,
@@ -16,6 +19,7 @@ $(document).ready(() => {
             }).then(res => {
                 toggle(true)
                 $(".rb-switcher-label").text("on").removeClass("disable")
+                alert("插件已启用")
             }, err => {
                 toggle(false)
                 $(".rb-switcher-label").text("off").addClass("disable")
@@ -44,7 +48,7 @@ function getState() {
         state = info.switch
         if (state) {
             $(".rb-switcher-label").text("on").removeClass("disable")
-            $("input[type='checkbox']").attr('checked',true)
+            $("input[type='checkbox']").attr('checked', true)
         }
     })
 }

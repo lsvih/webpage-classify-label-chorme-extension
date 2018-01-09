@@ -1,0 +1,53 @@
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+</head>
+<link rel="stylesheet" href="../resource/layerjs/css/layui.css">
+<style>
+    body {
+        padding: 20px;
+    }
+
+    h1 {
+        margin-bottom: 30px;
+    }
+
+    .help {
+        float: right;
+    }
+</style>
+
+<body>
+    <h1>选项页</h1>
+    <hr/>
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">服务器地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="server" required lay-verify="required" placeholder="请输入服务器地址(包括端口)" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="testServer">测试并保存</button>
+            </div>
+        </div>
+    </form>
+    <hr />
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">插件开关</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch" lay-filter="switch">
+            </div>
+        </div>
+    </form>
+    <hr />
+    <a class="help" href="https://github.com/lsvih/webpage-classify-label-chrome-extension/issues" target="_blank">有问题？点此反馈</a>
+</body>
+<script src="../js/jquery.js"></script>
+<script src="../resource/layerjs/layui.js"></script>
+<script src="../js/options.js"></script>
+
+</html>

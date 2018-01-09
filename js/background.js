@@ -1,21 +1,28 @@
-// First launch
-const server = 'http://127.0.0.1:9999/'
-toggle(false)
-
-$.ajax({
-    url: `${server}ping`,
-    type: 'GET',
-    timeout: 1000,
-}).then(res => toggle(true), err => {
-    alert('连接服务器失败，请注意标注工具插件限在实验室局域网使用。插件已自动关闭。')
-    toggle(false)
-})
-
+// First launch.
 chrome.storage.sync.get(info => {
+    if (!info.hasOwnProperty('server'))
+        chrome.storage.sync.set({
+            'server': 'http://127.0.0.1:8080/'
+        })
     if (!info.hasOwnProperty('count'))
         chrome.storage.sync.set({
             'count': 0
         })
+})
+let server
+// Get server address and test it.
+chrome.storage.sync.get(info => {
+    server = info["server"]
+    toggle(false)
+
+    $.ajax({
+        url: `${server}ping`,
+        type: 'GET',
+        timeout: 1000,
+    }).then(res => toggle(true), err => {
+        alert('连接服务器失败，请注意标注工具插件限在实验室局域网使用。插件已自动关闭。')
+        toggle(false)
+    })
 })
 
 let imageQuality = 1.0 // 图像质量
