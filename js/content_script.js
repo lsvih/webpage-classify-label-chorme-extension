@@ -80,7 +80,7 @@ let fixedDOM = []
 
 chrome.storage.sync.get(info => {
     console.log(`标注工具开关状态：${info.switch}`)
-    if (info.switch)
+    if (info.switch && isPageSmall())
         // 先检查 url 是否存在
         chrome.extension.sendMessage({
             type: 'checkUrl',
@@ -160,4 +160,10 @@ function showAllFixedDOM() {
     while (fixedDOM.length) {
         $(fixedDOM.pop()).show()
     }
+}
+
+function isPageSmall(){
+    let bodyHeight = document.body.scrollHeight
+    let windowHeight = window.innerHeight
+    return (bodyHeight / windowHeight) < 8
 }
