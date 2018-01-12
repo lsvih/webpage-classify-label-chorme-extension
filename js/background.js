@@ -9,12 +9,9 @@ chrome.storage.sync.get(info => {
             'count': 0
         })
 })
-let server
 // Get server address and test it.
-chrome.storage.sync.get(info => {
-    server = info["server"]
+getServer(server => {
     toggle(false)
-
     $.ajax({
         url: `${server}ping`,
         type: 'GET',
@@ -42,14 +39,14 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
                 }, () => {
                     // 对截图进行缩放
                     function dataURLToCanvas(dataurl, cb) {
-                        var canvas = document.createElement('canvas')
-                        var ctx = canvas.getContext('2d')
-                        var img = new Image()
-                        img.onload = function () {
+                        let canvas = document.createElement('canvas')
+                        let ctx = canvas.getContext('2d')
+                        let img = new Image()
+                        img.onload = () => {
                             canvas.width = isCompress ? imageWidth : img.width
                             let scale = canvas.width / img.width
                             canvas.height = img.height * scale
-                            ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height)
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
                             cb(canvas)
                         };
                         img.src = dataurl
@@ -64,21 +61,23 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
                     }
 
                     function BlobToCanvas(blob, cb) {
-                        fileOrBlobToDataURL(blob, function (dataurl) {
+                        fileOrBlobToDataURL(blob, dataurl => {
                             dataURLToCanvas(dataurl, cb)
                         })
                     }
                     BlobToCanvas(data[0], canvas => {
-                        $.ajax({
-                            url: `${server}labels`,
-                            type: 'POST',
-                            contentType: "application/json;charset=UTF-8",
-                            data: JSON.stringify({
-                                "clazz": clazz,
-                                "url": url,
-                                "html": html,
-                                "image": canvas.toDataURL("image/png", imageQuality)
-                            }),
+                        getServer(server => {
+                            $.ajax({
+                                url: `${server}labels`,
+                                type: 'POST',
+                                contentType: "application/json;charset=UTF-8",
+                                data: JSON.stringify({
+                                    "clazz": clazz,
+                                    "url": url,
+                                    "html": html,
+                                    "image": canvas.toDataURL("image/png", imageQuality)
+                                }),
+                            })
                         })
                     })
                 })
@@ -94,17 +93,19 @@ chrome.extension.onMessage.addListener((objRequest, _, sendResponse) => {
             getCapture()
             break
         case "checkUrl":
-            $.ajax({
-                url: `${server}findLabelByUrl?url=${encodeURIComponent(objRequest.url)}`,
-                type: 'GET',
-                contentType: "application/json;charset=UTF-8",
-                timeout: 2000,
-            }).then(res => {
-                if (typeof res != "object")
-                    chrome.tabs.sendMessage(_.tab.id, {
-                        type: "notExist"
-                    })
-            }, err => console.log(err))
+            getServer(server => {
+                $.ajax({
+                    url: `${server}findLabelByUrl?url=${encodeURIComponent(objRequest.url)}`,
+                    type: 'GET',
+                    contentType: "application/json;charset=UTF-8",
+                    timeout: 2000,
+                }).then(res => {
+                    if (typeof res != "object")
+                        chrome.tabs.sendMessage(_.tab.id, {
+                            type: "notExist"
+                        })
+                }, err => console.log(err))
+            })
             break
         default:
             break
@@ -156,4 +157,11 @@ function getCapture(callback) {
         var tab = tabs[0]
         CaptureAPI.captureToBlobs(tab, callback, err => alert(err))
     });
+}
+
+function getServer(callback) {
+    chrome.storage.sync.get(info => {
+        let server = info["server"]
+        callback(server)
+    })
 }
